@@ -1,130 +1,58 @@
 # Student Opportunity Risk & Action Engine
 
-A full-stack web application designed to help students discover, track, and manage internships, hackathons, scholarships, fellowships, competitions, and other career opportunities.
+A Python workflow engine that helps students discover, track, and manage internships, hackathons, scholarships, fellowships, competitions, and other career opportunities. The system goes beyond simply listing opportunities by analysing deadlines, application progress, and student activity to identify opportunities that are at risk of being missed and recommend the appropriate next action.
 
-The system goes beyond simply listing opportunities by analysing deadlines, application progress, and student activity to identify opportunities that are at risk of being missed and recommend the appropriate next action.
-
----
-
-## Features
-
-### Authentication & User Management
-- User registration and login
-- JWT-based authentication
-- Role-based access control
-- Student, Organization, and Admin roles
-- Student profile management
-- Skills, interests, education, and preferred opportunity types
-- Password management
-
-### Opportunity Management
-- Browse internships, hackathons, scholarships, fellowships, and competitions
-- View opportunity details
-- Eligibility and required skills
-- Application deadline tracking
-- Organization and application links
-- Save/bookmark opportunities
-- Search and filter opportunities
-- Organization/Admin opportunity management
-
-### Opportunity Tracking & Application Management
-- Track opportunity progress through different stages:
-  `Discovered → Saved → Eligibility Checked → Preparing → Application Started → Submitted → Result`
-- Update application status
-- Track required documents
-- Manage preparation tasks
-- Team formation tracking
-- Add notes and deadlines
-- Upcoming and ongoing opportunity dashboard
-
-### Risk Detection & Action Engine
-- Analyse deadlines, application status, and student activity
-- Detect opportunities that are at risk of being missed
-- Identify reasons behind the risk
-- Risk levels:
-  - Low
-  - Medium
-  - High
-- Recommended actions such as:
-  - Start Application
-  - Form a Team
-  - Complete Documents
-  - Start Preparation
-
-### Notifications & Reminders
-- Deadline reminders
-- Risk-based notifications
-- Scheduled reminders using Spring Scheduler
-- In-app notifications
-- Email notification support
-- Notification preferences
-
-### Student Insights & Analytics
-- Track discovered, saved, started, and submitted opportunities
-- Analyse application history
-- Detect missed-opportunity patterns
-- Identify late application behaviour
-- Personalized student insights
-- Opportunity readiness overview
-
-### Admin Dashboard & Analytics
-- Manage users and organizations
-- Manage opportunities
-- Approve or remove opportunities
-- Detect duplicate or inappropriate opportunities
-- Monitor application and engagement statistics
-- View popular opportunity categories
-- Platform-level analytics
+> Built for [PSIT-GDGOC/student-opportunity-risk-action-engine](https://github.com/PSIT-GDGOC/student-opportunity-risk-action-engine)
 
 ---
 
-## Main USP
+## Project Overview
 
-Traditional opportunity platforms mainly focus on **finding opportunities and showing deadlines**.
-
-This project focuses on the **Risk & Action Layer**.
-
-It answers three important questions:
+Traditional opportunity platforms mainly focus on **finding opportunities and showing deadlines**. This project focuses on the **Risk & Action Layer**, answering three important questions:
 
 1. **Which opportunity am I likely to miss?**
 2. **Why am I at risk of missing it?**
 3. **What should I do next?**
 
-This makes the system proactive rather than just an opportunity listing platform.
+The core workflow engine implements the complete student journey from opportunity discovery through application submission, with automated risk detection and recommended actions at every step.
 
 ---
 
-## Tech Stack
-
-| Component | Technology |
-|-----------|------------|
-| Frontend | React.js |
-| Backend | Java, Spring Boot |
-| Database | MySQL |
-| ORM | Spring Data JPA / Hibernate |
-| Security | Spring Security, JWT |
-| API | REST APIs |
-| Scheduling | Spring Scheduler |
-| API Testing | Postman |
-| Version Control | Git & GitHub |
-
----
-
-## System Architecture
+## Repository Structure
 
 ```text
-User
-  ↓
-React.js Frontend
-  ↓
-Spring Boot REST APIs
-  ↓
-Business Logic
-  ↓
-Risk & Action Engine
-  ↓
-MySQL Database
+student-opportunity-risk-action-engine/
+│
+├── src/
+│   ├── __init__.py              # Package exports
+│   ├── models.py                # Domain models (Opportunity, StudentApplication, enums)
+│   └── workflow.py              # OpportunityWorkflowManager (core business logic)
+│
+├── tests/
+│   ├── __init__.py              # Test package
+│   ├── conftest.py              # Shared fixtures and mock data
+│   ├── test_opportunity_workflow.py   # Unit tests for each workflow task
+│   └── test_complete_workflow.py      # End-to-end integration test
+│
+├── requirements.txt             # Python dependencies
+├── .gitignore                   # Git ignore rules
+├── LICENSE                      # MIT License
+└── README.md                    # This file
 ```
+
+---
+
+## Features Covered
+
+The following **7 workflow capabilities** are implemented and fully tested:
+
+1. **Viewing Opportunities** — List all opportunities and filter by keyword or active deadline without mutating state.
+2. **Saving an Opportunity** — Bookmark/save an opportunity to a student's tracker with explicit duplicate prevention.
+3. **Application Status Updates** — Enforce valid state transitions (`DISCOVERED` → `SAVED` → `IN_PROGRESS` → `SUBMITTED` → `ACCEPTED`/`REJECTED`) and raise errors on invalid transitions.
+4. **Deadline Tracking** — Calculate time/days remaining until deadlines, flag expired opportunities, and sort saved opportunities by urgency.
+5. **Risk Detection** — Flag high-risk states including deadlines approaching within 48 hours, passed deadlines, and missing required documents while an application is in progress.
+6. **Recommended Actions** — Dynamically generate actionable next steps based on current status and active risk flags (e.g., "Upload missing required documents: resume.pdf", "Urgent: Submit application within 48 hours").
+7. **End-to-End Workflow** — Complete student journey from opportunity discovery → save → deadline check → risk detection → resolve issues → status updates → final submission with zero risk flags.
 
 ---
 
@@ -135,23 +63,81 @@ Discover Opportunity
         ↓
 Save Opportunity
         ↓
-Check Eligibility
+Check Deadline & Eligibility
         ↓
-Start Preparation
+Start Application (IN_PROGRESS)
         ↓
-Application Started
+Risk Analysis (deadline + documents)
         ↓
-Risk Analysis
+Resolve Flagged Issues
         ↓
-Risk Detected
+Submit Application
         ↓
-Reason Identified
-        ↓
-Action Suggested
-        ↓
-Application Submitted
-        ↓
-Result
+Result (ACCEPTED / REJECTED)
+```
+
+---
+
+## Setup & Installation
+
+### Prerequisites
+
+- Python 3.9+
+
+### Install Dependencies
+
+```bash
+# Create and activate a virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate        # Linux/macOS
+venv\Scripts\activate           # Windows
+
+# Install required packages
+pip install -r requirements.txt
+```
+
+---
+
+## Running Tests
+
+### Using pytest (recommended)
+
+```bash
+PYTHONPATH=. pytest -v
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:PYTHONPATH = "."; python -m pytest -v
+```
+
+### Using unittest
+
+```bash
+PYTHONPATH=. python -m unittest discover -s tests -v
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:PYTHONPATH = "."; python -m unittest discover -s tests -v
+```
+
+### Expected Output
+
+All 7 tests should pass:
+
+```text
+tests/test_complete_workflow.py::test_end_to_end_student_workflow PASSED
+tests/test_opportunity_workflow.py::test_viewing_opportunities PASSED
+tests/test_opportunity_workflow.py::test_saving_opportunity PASSED
+tests/test_opportunity_workflow.py::test_application_status_updates PASSED
+tests/test_opportunity_workflow.py::test_deadline_tracking PASSED
+tests/test_opportunity_workflow.py::test_risk_detection PASSED
+tests/test_opportunity_workflow.py::test_recommended_actions PASSED
+
+7 passed
 ```
 
 ---
@@ -159,162 +145,33 @@ Result
 ## Risk Detection Example
 
 ```text
-Opportunity: Hackathon
+Opportunity: Global AI Hackathon 2026
 
-Deadline: 2 Days Remaining
-
-Application Status: Not Started
-
-Team: Not Formed
-
-Documents: Incomplete
+Deadline: 20 Hours Remaining
+Application Status: IN_PROGRESS
+Required Documents: resume.pdf, project_proposal.pdf
+Submitted Documents: (none)
 
 Risk Level: HIGH
 
+Risk Flags:
+  → DEADLINE_APPROACHING
+  → MISSING_DOCUMENTS
+
 Recommended Actions:
-→ Start Application
-→ Form a Team
-→ Complete Documents
+  → Upload missing required documents: resume.pdf, project_proposal.pdf
+  → Urgent: Submit application within 48 hours
 ```
 
 ---
 
-## Planned API Endpoints
+## Tech Stack
 
-### Authentication
-
-```text
-POST   /api/auth/register
-POST   /api/auth/login
-```
-
-### Opportunities
-
-```text
-GET    /api/opportunities
-GET    /api/opportunities/{id}
-POST   /api/opportunities
-PUT    /api/opportunities/{id}
-DELETE /api/opportunities/{id}
-```
-
-### Applications
-
-```text
-GET    /api/applications
-POST   /api/applications
-PUT    /api/applications/{id}
-DELETE /api/applications/{id}
-```
-
-### Risk & Actions
-
-```text
-GET    /api/risks
-GET    /api/risks/{opportunityId}
-GET    /api/actions/{opportunityId}
-```
-
-### Notifications
-
-```text
-GET    /api/notifications
-PUT    /api/notifications/{id}/read
-```
-
-> These APIs are planned and will be implemented during development.
-
----
-
-## Database Design
-
-Main entities planned for the system:
-
-```text
-User
- ├── Student Profile
- ├── Applications
- └── Notifications
-
-Opportunity
- ├── Eligibility
- ├── Skills
- └── Deadline
-
-Application
- ├── Status
- ├── Documents
- ├── Tasks
- └── Notes
-
-Risk Analysis
- ├── Risk Level
- ├── Risk Reason
- └── Recommended Action
-```
-
----
-
-## Project Structure
-
-```text
-student-opportunity-risk-action-engine/
-│
-├── frontend/
-│   └── React.js
-│
-├── backend/
-│   └── Spring Boot
-│
-├── database/
-│   └── Database Scripts
-│
-├── docs/
-│   └── Documentation
-│
-└── README.md
-```
-
----
-
-## Security
-
-- Spring Security
-- JWT Authentication
-- Role-based Authorization
-- Password Hashing
-- Secure REST APIs
-- Input Validation
-- Protected Admin Operations
-
----
-
-## Future Improvements
-
-- AI-based opportunity recommendations
-- Personalized opportunity matching
-- Resume-based opportunity matching
-- Smart deadline prediction
-- AI-generated preparation plans
-- Automated opportunity collection
-- Advanced behavioural analytics
-- Email and push notifications
-- Calendar integration
-- Mobile application
-
----
-
-## Project Status
-
-🚧 **In Development**
-
-The project is currently being developed as a full-stack web application using React.js, Spring Boot, and MySQL.
-
----
-
-## Team
-
-**PSIT-GDGOC**
+| Component       | Technology       |
+|-----------------|------------------|
+| Language        | Python 3.9+      |
+| Testing         | pytest / unittest|
+| Architecture    | Pure Python (no external dependencies beyond pytest) |
 
 ---
 
