@@ -1,12 +1,22 @@
-
 import { useState } from 'react'
 import './App.css'
 
+// Risk levels are sample values; this component displays them rather than calculating risk.
 const opportunities = [
-  { title: 'Google Summer Internship', company: 'Google', type: 'Internship', deadline: 'Oct 24, 2026', days: 9, status: 'In progress', risk: 'High', icon: 'G' },
-  { title: 'Software Engineer Intern', company: 'Microsoft', type: 'Internship', deadline: 'Oct 29, 2026', days: 14, status: 'Not started', risk: 'Medium', icon: 'M' },
-  { title: 'Amazon ML Summer School', company: 'Amazon', type: 'Program', deadline: 'Nov 08, 2026', days: 24, status: 'In progress', risk: 'Low', icon: 'a' },
+  { title: 'Google Summer Internship', company: 'Google', type: 'Internship', deadline: '2026-10-24', status: 'In progress', risk: 'High', reason: 'Application is still in progress and needs immediate attention.', icon: 'G' },
+  { title: 'Software Engineer Intern', company: 'Microsoft', type: 'Internship', deadline: '2026-10-29', status: 'Not started', risk: 'Medium', reason: 'Application has not been started and the deadline is approaching.', icon: 'M' },
+  { title: 'Amazon ML Summer School', company: 'Amazon', type: 'Program', deadline: '2026-11-08', status: 'In progress', risk: 'Low', reason: 'Application is underway with time remaining before the deadline.', icon: 'a' },
 ]
+
+function deadlineDetails(dateString, now = new Date()) {
+  const [year, month, day] = dateString.split('-').map(Number)
+  const deadlineUTC = Date.UTC(year, month - 1, day)
+  const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+  const days = Math.round((deadlineUTC - todayUTC) / 86400000)
+  if (days < 0) return { text: `${Math.abs(days)} day${days === -1 ? '' : 's'} overdue`, overdue: true }
+  if (days === 0) return { text: 'Due today', overdue: false }
+  return { text: `${days} day${days === 1 ? '' : 's'} left`, overdue: false }
+}
 
 function App() {
   const [active, setActive] = useState('Overview')
@@ -101,15 +111,27 @@ function App() {
           <section className="dashboard-grid">
             <article className="panel opportunity-panel">
               <div className="panel-heading"><div><h3>Priority opportunities</h3><p>Keep the best-fit opportunities on your radar.</p></div><button className="text-button" onClick={() => setActive('Opportunities')}>View all →</button></div>
-              <div className="search-box"><span>⌕</span><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search opportunities..." /></div>
+              <div className="search-box"><span>⌕</span><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search opportunities..." aria-label="Search opportunities" /></div>
               <div className="opportunity-list">
-                {filtered.map(item => (
-                  <div className="opportunity" key={item.title}>
-                    <div className={`company-icon company-${item.icon.toLowerCase()}`}>{item.icon}</div>
-                    <div className="opportunity-info"><strong>{item.title}</strong><p>{item.company} <span>·</span> {item.type}</p><small>Deadline: {item.deadline}</small></div>
-                    <div className="opportunity-meta"><span className={`risk risk-${item.risk.toLowerCase()}`}>{item.risk} risk</span><small>{item.days} days left</small></div>
-                  </div>
-                ))}
+                {filtered.map(item => {
+                  const deadline = deadlineDetails(item.deadline)
+                  return (
+                    <div className="opportunity" key={item.title}>
+                      <div className={`company-icon company-${item.icon.toLowerCase()}`}>{item.icon}</div>
+                      <div className="opportunity-info">
+                        <strong>{item.title}</strong>
+                        <p>{item.company} <span>·</span> {item.type}</p>
+                        <small>Deadline: {new Date(`${item.deadline}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
+                        <p className="application-status"><b>Application:</b> {item.status}</p>
+                        <p className="risk-reason"><b>Why {item.risk.toLowerCase()} risk:</b> {item.reason}</p>
+                      </div>
+                      <div className="opportunity-meta">
+                        <span className={`risk risk-${item.risk.toLowerCase()}`}>{item.risk} risk</span>
+                        <small className={deadline.overdue ? 'deadline-overdue' : ''}>{deadline.text}</small>
+                      </div>
+                    </div>
+                  )
+                })}
                 {filtered.length === 0 && <p className="empty-state">No matching opportunities found.</p>}
               </div>
             </article>
